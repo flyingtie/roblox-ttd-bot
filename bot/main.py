@@ -11,5 +11,7 @@ def main():
     
     pyautogui.FAILSAFE = config.pyautogui_failsafe    
 
+    
+
 if __name__ == "__main__":
     main()
