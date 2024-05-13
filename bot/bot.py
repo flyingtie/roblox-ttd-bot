@@ -7,8 +7,3 @@ class Bot:
 
     def run(self):
         pass
-
-
-import cv2
-
-cv2.imread()
