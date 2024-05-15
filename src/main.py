@@ -5,8 +5,8 @@ sys.path.append(".")
     
 from loguru import logger    
     
-from bot.config import Settings
-from bot.bot import Bot
+from src.config import Settings
+from src.bot import Bot
 
 def main():
     config = Settings()
