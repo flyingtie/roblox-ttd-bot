@@ -1,5 +1,6 @@
 from enum import StrEnum
 
+
 class ImgsDirsTemplates(StrEnum):
     NO_MONEY = "../data/no_money.png"
     MARKETPLACE = "../data/marketplace.png"
