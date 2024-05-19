@@ -5,5 +5,8 @@ class ProductToPurchase(BaseModel):
     name: str
     max_price: int
 
-class ProductsToPurchase(BaseModel):
-    products: list[ProductToPurchase]
+
+products_data = (
+    ("test_name", 123),
+    ("test_name2", 777)
+)
