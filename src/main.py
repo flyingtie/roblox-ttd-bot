@@ -14,12 +14,8 @@ from src.products_data import ProductToPurchase, products_data
 
 def main():
     config = Settings()
-    
     pyautogui.FAILSAFE = config.pyautogui_failsafe  
     
-    purchase_manager = PurchaseManager()
-    game_manager = Game()
-
     try:
         products_to_purchase = [
             ProductToPurchase(
@@ -30,6 +26,9 @@ def main():
     except ValidationError as e:
         logger.error(e)
 
+    purchase_manager = PurchaseManager()
+    game_manager = Game()
+    
     bot = Bot(
         purchase_manager=purchase_manager, 
         game_manager=game_manager, 
