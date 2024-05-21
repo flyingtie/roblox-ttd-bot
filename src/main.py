@@ -9,7 +9,7 @@ from pydantic import ValidationError
 from src.config import Settings
 from src.service import PurchaseManager
 from src.bot import Bot
-from src.game import Game
+from src.vision import Game
 from src.products_data import ProductToPurchase, products_data
 
 def main():

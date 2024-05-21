@@ -4,7 +4,7 @@ from loguru import logger
 from typing import Iterable
 
 from src.service import PurchaseManager
-from src.game import Game
+from src.vision import Game
 from src.products_data import ProductToPurchase
 
 
