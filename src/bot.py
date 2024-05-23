@@ -5,7 +5,7 @@ from loguru import logger
 from typing import Iterable
 
 from src.products_to_purchase import ProductToPurchase
-from src.interactions import Device
+from src.interaction import Device
 from src.service import PurchaseManager
 from src.vision import Vision
 from src.templates import Template
