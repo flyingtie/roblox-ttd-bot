@@ -14,5 +14,3 @@ from src.products_to_purchase import ProductToPurchase
 class PurchaseManager:
     def __init__(self, products_to_purchase: Iterable[ProductToPurchase]):
         self.products_to_purchase = products_to_purchase
-        
-    

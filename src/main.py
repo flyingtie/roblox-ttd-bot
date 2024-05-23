@@ -9,10 +9,11 @@ from pydantic import ValidationError
 
 from src.products_to_purchase import ProductToPurchase, products_to_purchase
 from src.exceptions import UnsupportedScreenResolution
-from src.config import config
 from src.service import PurchaseManager
-from src.bot import Bot
+from src.interaction import Device
 from src.vision import Vision
+from src.bot import Bot
+from src.config import config
 
 def main():
     pyautogui.FAILSAFE = config.pyautogui_failsafe  
@@ -26,13 +27,16 @@ def main():
         ]
     except ValidationError as e:
         logger.error(e)
+        exit()
 
     purchase_manager = PurchaseManager(prods_to_purch)
     vision = Vision(prods_to_purch)
+    device = Device()
     
     bot = Bot(
         purchase_manager=purchase_manager, 
-        vision=vision, 
+        vision=vision,
+        device=device, 
         products_to_purchase=prods_to_purch
     )
     

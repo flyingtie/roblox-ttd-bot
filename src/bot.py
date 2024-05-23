@@ -1,12 +1,13 @@
 import time
-import pyautogui as pag
+import pyautogui as pg
 
 from loguru import logger
 from typing import Iterable
 
+from src.products_to_purchase import ProductToPurchase
+from src.interactions import Device
 from src.service import PurchaseManager
 from src.vision import Vision
-from src.products_to_purchase import ProductToPurchase
 from src.templates import Template
 
 class Bot:
@@ -14,10 +15,12 @@ class Bot:
         self, 
         purchase_manager: PurchaseManager,
         vision: Vision,
+        device: Device,
         products_to_purchase: Iterable[ProductToPurchase]
     ):
         self.purchase_manager = purchase_manager
         self.vision = vision
+        self.device = device
         self.products_to_purchase = products_to_purchase
 
     def on_startup(self):
