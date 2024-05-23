@@ -3,10 +3,12 @@ import pyautogui
 
 sys.path.append(".")
     
+from pyautogui import FailSafeException
 from loguru import logger    
 from pydantic import ValidationError
 
 from src.products_to_purchase import ProductToPurchase, products_to_purchase
+from src.exceptions import UnsupportedScreenResolution
 from src.config import config
 from src.service import PurchaseManager
 from src.bot import Bot
@@ -25,8 +27,8 @@ def main():
     except ValidationError as e:
         logger.error(e)
 
-    purchase_manager = PurchaseManager()
-    vision = Vision()
+    purchase_manager = PurchaseManager(prods_to_purch)
+    vision = Vision(prods_to_purch)
     
     bot = Bot(
         purchase_manager=purchase_manager, 
@@ -38,6 +40,10 @@ def main():
         bot.run()
     except KeyboardInterrupt:
         logger.error("Бот был остановлен вручную")
+    except FailSafeException:
+        logger.error("Сработал failsafe pyautogui")
+    except UnsupportedScreenResolution:
+        logger.error("Неподдерживаемое разрешение экрана")
 
 if __name__ == "__main__":
     main()

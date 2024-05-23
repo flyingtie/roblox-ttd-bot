@@ -1,0 +1,2 @@
+class UnsupportedScreenResolution(Exception):
+    pass

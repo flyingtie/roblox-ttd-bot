@@ -5,25 +5,40 @@ from cv2.typing import MatLike
 from PIL import ImageGrab
 from typing import Iterable, Optional
 
+from src.exceptions import UnsupportedScreenResolution
 from src.products_to_purchase import ProductToPurchase
-from src.templates import ProductTemplate
+from src.templates import ProductTemplate, Template
 from src.config import config
 
 
-class Vision:    
-    def __init__(self):
-        self.products_templates: list[tuple[ProductToPurchase, MatLike]] = list()
-        self.screenshot: Optional[MatLike] = None
+class Vision:
+    product_templates: list[tuple[ProductToPurchase, MatLike]]
+    templates: list[tuple[Template, MatLike]]
+    screenshot: Optional[MatLike]
     
-    def load_products_templates(self, products_to_purchase: Iterable[ProductToPurchase]):
-        for product in products_to_purchase:
+    def __init__(self, products_to_purchase: Iterable[ProductToPurchase]):
+        self.products_to_purchase = products_to_purchase
+        self.product_templates = list()
+        self.templates = list()
+        self.screenshot = None
+    
+    def load_templates(self):
+        for template_name in Template:
+            path = config.path_to_templates.joinpath(template_name)
+            template = cv.imread(str(path))
+            self.templates.append((template_name, template))
+    
+    def load_product_templates(self):
+        for product in self.products_to_purchase:
             path = config.path_to_products_templates.joinpath(product.name)
             template = cv.imread(str(path), cv.IMREAD_GRAYSCALE)
-            self.products_templates.append((product, template))
+            self.product_templates.append((product, template))
     
-    def new_sreenshot(self):
-        # self.screenshot = ImageGrab.grab()
-        pass
+    def update_screenshot(self):
+        self.screenshot = ImageGrab.grab()
+        
+        if self.screenshot.size != (1920, 1080):
+            raise UnsupportedScreenResolution("Неподдерживаемое разрешение экрана!")
     
 class ImageWorker:
     def __init__(self):

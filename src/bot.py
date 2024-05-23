@@ -1,4 +1,5 @@
 import time
+import pyautogui as pag
 
 from loguru import logger
 from typing import Iterable
@@ -6,7 +7,7 @@ from typing import Iterable
 from src.service import PurchaseManager
 from src.vision import Vision
 from src.products_to_purchase import ProductToPurchase
-
+from src.templates import Template
 
 class Bot:
     def __init__(
@@ -20,12 +21,17 @@ class Bot:
         self.products_to_purchase = products_to_purchase
 
     def on_startup(self):
-        self.vision.load_products_templates(self.products_to_purchase)
+        logger.info("Бот запущен")
+        self.vision.load_templates()
+        self.vision.load_product_templates()
     
     def run(self):
         self.on_startup()        
         while True:
-            self.vision.new_sreenshot()
+            self.vision.update_screenshot()
+            # logger.info(self.products_to_purchase)
+            logger.info(self.vision.product_templates)
+            logger.info(self.vision.templates)
             
-            logger.info(self.products_to_purchase)
-            time.sleep(1)
+            time.sleep(5)
+            break
