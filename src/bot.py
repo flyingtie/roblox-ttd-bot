@@ -29,7 +29,7 @@ class Bot:
         self.vision.load_product_templates()
     
     def run(self):
-        self.on_startup()        
+        self.on_startup()
         while True:
             self.vision.update_screenshot()
             # logger.info(self.products_to_purchase)
