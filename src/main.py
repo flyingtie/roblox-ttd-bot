@@ -16,7 +16,7 @@ def main():
     pyautogui.FAILSAFE = config.pyautogui_failsafe  
     
     try:
-        prod_to_purch = [
+        prods_to_purch = [
             ProductToPurchase(
                 name=product[0], 
                 max_price=product[1]
@@ -31,7 +31,7 @@ def main():
     bot = Bot(
         purchase_manager=purchase_manager, 
         vision=vision, 
-        products_to_purchase=prod_to_purch
+        products_to_purchase=prods_to_purch
     )
     
     try:

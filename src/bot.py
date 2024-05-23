@@ -19,8 +19,13 @@ class Bot:
         self.vision = vision
         self.products_to_purchase = products_to_purchase
 
-    def run(self):        
+    def on_startup(self):
         self.vision.load_products_templates(self.products_to_purchase)
+    
+    def run(self):
+        self.on_startup()        
         while True:
+            self.vision.new_sreenshot()
+            
             logger.info(self.products_to_purchase)
             time.sleep(1)

@@ -11,9 +11,13 @@ class Settings(BaseSettings):
     
     pyautogui_failsafe: bool
     
-    @field_validator("path_to_templates", "path_to_products_templates", mode="before")
+    @field_validator(
+        "path_to_templates", 
+        "path_to_products_templates", 
+        mode="before"
+    )
     @classmethod
-    def convert_type(cls, v: str) -> Path:
+    def convert_path_type(cls, v: str) -> Path:
         if not isinstance(v, str):
             raise TypeError("Путь должен быть строкой!")
         return Path(v)
