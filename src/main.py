@@ -6,33 +6,32 @@ sys.path.append(".")
 from loguru import logger    
 from pydantic import ValidationError
 
-from src.config import Settings
+from src.products_to_purchase import ProductToPurchase, products_to_purchase
+from src.config import config
 from src.service import PurchaseManager
 from src.bot import Bot
-from src.vision import Game
-from src.products_data import ProductToPurchase, products_data
+from src.vision import Vision
 
 def main():
-    config = Settings()
     pyautogui.FAILSAFE = config.pyautogui_failsafe  
     
     try:
-        products_to_purchase = [
+        prod_to_purch = [
             ProductToPurchase(
                 name=product[0], 
                 max_price=product[1]
-            ) for product in products_data
+            ) for product in products_to_purchase
         ]
     except ValidationError as e:
         logger.error(e)
 
     purchase_manager = PurchaseManager()
-    game_manager = Game()
+    vision = Vision()
     
     bot = Bot(
         purchase_manager=purchase_manager, 
-        game_manager=game_manager, 
-        products_to_purchase=products_to_purchase
+        vision=vision, 
+        products_to_purchase=prod_to_purch
     )
     
     try:
