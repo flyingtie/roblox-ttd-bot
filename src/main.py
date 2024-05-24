@@ -44,7 +44,7 @@ def main():
     except FailSafeException:
         logger.error("Сработал failsafe pyautogui")
     except NotEnoughMoney:
-        logger.error(e)
+        logger.error("Недостаточно средств для покупки")
     except UnsupportedScreenResolution as e:
         logger.error(e)
 

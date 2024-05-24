@@ -39,7 +39,7 @@ class Vision:
         self.screenshot = ImageGrab.grab()
         
         if self.screenshot.size != (1920, 1080):
-            raise UnsupportedScreenResolution("Неподдерживаемое разрешение экрана!")
+            raise UnsupportedScreenResolution("Неподдерживаемое разрешение экрана")
 
     def find_template(self, template: Template):
         self.templates[template]
