@@ -1,48 +1,76 @@
 import cv2 as cv
 import numpy as np
+import re
 
 from cv2.typing import MatLike
 from PIL import ImageGrab
 from typing import Iterable, Optional
 
-from src.exceptions import UnsupportedScreenResolution
+from src.exceptions import UnsupportedScreenResolution, PriceValidationError
 from src.products_to_purchase import ProductToPurchase
-from src.templates import ProductTemplate, Template
+from src.templates import ProductTemplate, CommonTemplate, Template
 from src.config import config
 
 
 class Vision:
-    product_templates: list[tuple[ProductToPurchase, MatLike]]
-    templates: list[tuple[Template, MatLike]]
+    product_templates: dict[ProductTemplate, MatLike]
+    templates: dict[CommonTemplate, MatLike]
     screenshot: Optional[MatLike]
     
-    def __init__(self, products_to_purchase: Iterable[ProductToPurchase]):
+    def __init__(self, products_to_purchase: dict[ProductTemplate, ProductToPurchase]):
         self.products_to_purchase = products_to_purchase
-        self.product_templates = list()
-        self.templates = list()
+        self.product_templates = dict()
+        self.templates = dict()
         self.screenshot = None
     
-    def load_templates(self):
-        for template_name in Template:
-            path = config.path_to_templates.joinpath(template_name)
-            template = cv.imread(str(path))
-            self.templates.append((template_name, template))
-    
     def load_product_templates(self):
-        for product in self.products_to_purchase:
-            path = config.path_to_products_templates.joinpath(product.name)
-            template = cv.imread(str(path), cv.IMREAD_GRAYSCALE)
-            self.product_templates.append((product, template))
+        for product_name in self.products_to_purchase:
+            path = config.path_to_products_templates.joinpath(product_name)
+            template = cv.imread(str(path) + ".png", cv.IMREAD_GRAYSCALE)
+            self.product_templates[product_name] = template
+    
+    def load_templates(self):
+        for template_name in CommonTemplate:
+            path = config.path_to_templates.joinpath(template_name)
+            template = cv.imread(str(path) + ".png")
+            self.templates[template_name] = template
     
     def update_screenshot(self):
         self.screenshot = ImageGrab.grab()
         
         if self.screenshot.size != (1920, 1080):
             raise UnsupportedScreenResolution("Неподдерживаемое разрешение экрана!")
+
+    def find_template(self, template: Template):
+        self.templates[template]
+        # cv.matchTemplate()
+        return ...
     
-class ImageWorker:
-    def __init__(self):
-        pass
+    @staticmethod
+    def validate_price(price: str) -> int:
+        price = price.replace(" ", "").lower()
+        
+        if price.isdigit():
+            return int(price)
+        
+        match_groups = re.match(r"^(\d+|\d+\.\d+)([kmb])$", price)
+        
+        if not match_groups:
+            raise PriceValidationError(f"could not convert {price} to an integer")
+        
+        price = float(match_groups.group(1))
+    
+        match match_groups.group(2):
+            case "k":
+                price *= 1000
+            case "m":
+                price *= 1_000_000
+            case "b":
+                price *= 1_000_000_000
+        
+        return int(price)
+
+                
 
 # image_1 = cv.imread('templates/no_money 1366 768.png')
 # img_2 = cv.imread('templates/marketplace 1366 768.png', cv.IMREAD_GRAYSCALE)

@@ -1,7 +1,13 @@
 from enum import StrEnum
 
-class Template(StrEnum):
-    MARKETPLACE = "marketplace.png"
 
-class ProductTemplate(StrEnum):
-    TEST_PRODUCT = "test_product.png"
+class Template(StrEnum):
+    pass
+
+
+class CommonTemplate(Template):
+    MARKETPLACE = "marketplace"
+
+
+class ProductTemplate(Template):
+    TEST_PRODUCT = "test_product"

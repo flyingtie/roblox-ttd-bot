@@ -4,11 +4,12 @@ import pyautogui as pg
 from loguru import logger
 from typing import Iterable
 
+from src.templates import CommonTemplate
 from src.products_to_purchase import ProductToPurchase
 from src.interaction import Device
-from src.service import PurchaseManager
+from src.purchasing import PurchaseManager
 from src.vision import Vision
-from src.templates import Template
+
 
 class Bot:
     def __init__(
@@ -16,12 +17,12 @@ class Bot:
         purchase_manager: PurchaseManager,
         vision: Vision,
         device: Device,
-        products_to_purchase: Iterable[ProductToPurchase]
+        # products_to_purchase: Iterable[ProductToPurchase]
     ):
         self.purchase_manager = purchase_manager
         self.vision = vision
         self.device = device
-        self.products_to_purchase = products_to_purchase
+        # self.products_to_purchase = products_to_purchase
 
     def on_startup(self):
         logger.info("Бот запущен")
@@ -32,9 +33,20 @@ class Bot:
         self.on_startup()
         while True:
             self.vision.update_screenshot()
-            # logger.info(self.products_to_purchase)
-            logger.info(self.vision.product_templates)
-            logger.info(self.vision.templates)
+            
+            #TODO:
+            # Моргает
+            # Пытается обнаружить маркетплейс
+            # Если не находит, пытается понять что он видит
+            # ...
+            # Если вообще ничего не находит, уходит в начало цикла
+            # Если находит маркетплейс, ищет отслеживаемые товары на скрине
+            # Если не найдёт, уходит в начало цикла
+            # Если найдёт, ищет координаты кнопки 
+            # Моргает и проверяет ещё раз именно этот шаблон
+            # Если не совпадает, то уходит в самое начало цикла
+            # Если совпадает, то нажимает кнопку
+            # Уходит в начало цикла
             
             time.sleep(5)
             break
