@@ -17,6 +17,6 @@ class PurchaseManager:
         
     def make_purchase_decision(self, product_name: ProductTemplate, price: int) -> bool:
         product = self.products_to_purchase[product_name]
-        if product.max_price <= price:
+        if product.max_price >= price:
             return True
         return False
