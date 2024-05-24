@@ -18,16 +18,13 @@ from src.config import config
 def main():
     pyautogui.FAILSAFE = config.pyautogui_failsafe  
     
-    try:
-        prods_to_purch = {
-            product[0]: ProductToPurchase(
-                name=product[0], 
-                max_price=product[1]
-            ) for product in products_to_purchase
-        }
-    except ValidationError as e:
-        logger.error(e)
-        exit()
+
+    prods_to_purch = {
+        product[0]: ProductToPurchase(
+            name=product[0], 
+            max_price=product[1]
+        ) for product in products_to_purchase
+    }
 
     purchase_manager = PurchaseManager(prods_to_purch)
     vision = Vision(prods_to_purch)
