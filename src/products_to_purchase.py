@@ -9,5 +9,5 @@ class ProductToPurchase(BaseModel):
 
 
 products_to_purchase = (
-    (ProductTemplate.TEST_PRODUCT, 1234), 
+    (ProductTemplate.TEST_PRODUCT, 1234),
 )

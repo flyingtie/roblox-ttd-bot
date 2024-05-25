@@ -36,10 +36,20 @@ class Vision:
             self.templates[template_name] = template
     
     def update_screenshot(self):
-        self.screenshot = ImageGrab.grab()
+        self.screenshot = np.array(ImageGrab.grab())
         
         if self.screenshot.size != (1920, 1080):
             raise UnsupportedScreenResolution("Неподдерживаемое разрешение экрана")
+
+    def test(self):
+        result = cv.cvtColor(self.screenshot, cv.COLOR_BGR2GRAY)
+        # result = cv.GaussianBlur(result, (5,5), 0)
+        # result = cv.Canny(result,100,200)
+        # _, result = cv.threshold(result, 127, 255, cv.THRESH_BINARY)
+    
+        cv.imshow("result", result)
+        cv.waitKey(0)
+        cv.destroyAllWindows()
 
     def find_template(self, template: Template):
         self.templates[template]
