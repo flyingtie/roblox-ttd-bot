@@ -1,4 +1,4 @@
-from enum import StrEnum
+from enum import StrEnum, auto
 
 
 class Template(StrEnum):
@@ -6,8 +6,8 @@ class Template(StrEnum):
 
 
 class CommonTemplate(Template):
-    MARKETPLACE = "marketplace"
+    MARKETPLACE = auto()
 
 
 class ProductTemplate(Template):
-    TEST_PRODUCT = "test_product"
+    TEST_PRODUCT = auto()

@@ -2,20 +2,34 @@ import cv2 as cv
 import numpy as np
 import re
 
+from enum import Enum, auto
 from cv2.typing import MatLike
 from PIL import ImageGrab
-from typing import Iterable, Optional
+from numpy.typing import NDArray
 
 from src.exceptions import UnsupportedScreenResolution, PriceValidationError
 from src.products_to_purchase import ProductToPurchase
 from src.templates import ProductTemplate, CommonTemplate, Template
 from src.config import config
 
+# TODO:
+# Создать датаклассы или енумы под кнопки и окошки
+class Button(Enum):
+    CANCEL = auto()
+    CONFIRM = auto()
+    BUY = auto()
+    OKAY = auto()
+
+class Window(Enum):
+    MARKETPLACE = auto()
+    NOT_ENOUGH_MONEY = auto()
+    SELLER_IN_TRADE = auto()
+
 
 class Vision:
     product_templates: dict[ProductTemplate, MatLike]
     templates: dict[CommonTemplate, MatLike]
-    screenshot: Optional[MatLike]
+    screenshot: NDArray
     
     def __init__(self, products_to_purchase: dict[ProductTemplate, ProductToPurchase]):
         self.products_to_purchase = products_to_purchase
@@ -36,7 +50,8 @@ class Vision:
             self.templates[template_name] = template
     
     def update_screenshot(self):
-        self.screenshot = np.array(ImageGrab.grab())
+        img = ImageGrab.grab()
+        self.screenshot = np.array(img, dtype=np.uint8)
         
         if self.screenshot.size != (1920, 1080):
             raise UnsupportedScreenResolution("Неподдерживаемое разрешение экрана")
@@ -55,6 +70,45 @@ class Vision:
         self.templates[template]
         # cv.matchTemplate()
         return ...
+    
+    def find_product(self):
+        pass
+    
+    def find_button(self):
+        pass
+    
+    def find_window(self):
+        pass
+    
+    def _find_clean_marketplace_window(self):
+        pass
+    
+    def _find_seller_in_trade_window(self):
+        pass
+    
+    def _find_not_enough_money_window(self):
+        pass
+    
+    def _find_confirm_button(self):
+        pass
+    
+    def _find_cancel_button(self):
+        pass
+    
+    def _find_okay_button(self):
+        pass
+    
+    def _find_buy_button(self):
+        pass
+    
+    def _find_product_name_in_confirm_window(self):
+        pass
+    
+    def _find_price_in_confirm_window(self):
+        pass
+    
+    def find_price(self):
+        pass
     
     @staticmethod
     def validate_price(price: str) -> int:
