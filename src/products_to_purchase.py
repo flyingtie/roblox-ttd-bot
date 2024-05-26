@@ -1,13 +1,20 @@
 from pydantic import BaseModel
 
-from src.templates import ProductTemplate
+from src.enums import Product
 
-# TODO: Сменить нахрен енумчик на другой
+
 class ProductToPurchase(BaseModel):
-    name: ProductTemplate
+    name: Product
     max_price: int
 
 
-products_to_purchase = (
-    (ProductTemplate.TEST_PRODUCT, 1234),
+prod_to_purch = (
+    (Product.TEST_PRODUCT, 1234),
 )
+
+products_to_purchase = {
+    product[0]: ProductToPurchase(
+        name=product[0], 
+        max_price=product[1]
+    ) for product in prod_to_purch
+}

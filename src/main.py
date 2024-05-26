@@ -18,16 +18,8 @@ from src.config import config
 def main():
     pyautogui.FAILSAFE = config.pyautogui_failsafe  
     
-
-    prods_to_purch = {
-        product[0]: ProductToPurchase(
-            name=product[0], 
-            max_price=product[1]
-        ) for product in products_to_purchase
-    }
-
-    purchase_manager = PurchaseManager(prods_to_purch)
-    vision = Vision(prods_to_purch)
+    purchase_manager = PurchaseManager(products_to_purchase)
+    vision = Vision(products_to_purchase)
     device = Device()
     
     bot = Bot(

@@ -10,31 +10,23 @@ from numpy.typing import NDArray
 
 from src.exceptions import UnsupportedScreenResolution, PriceValidationError
 from src.products_to_purchase import ProductToPurchase
-from src.templates import ProductTemplate, CommonTemplate, Template
+from src.enums import (
+    InterfaceElement, 
+    Product, 
+    CommonTemplate,
+    Window,
+    Button,
+    Template
+)
 from src.config import config
 
 
-class InterfaceElement(Enum):
-    pass
-
-class Button(InterfaceElement):
-    CANCEL = auto()
-    CONFIRM = auto()
-    BUY = auto()
-    OKAY = auto()
-
-class Window(InterfaceElement):
-    MARKETPLACE = auto()
-    NOT_ENOUGH_MONEY = auto()
-    SELLER_IN_TRADE = auto()
-
-
 class Vision:
-    product_templates: dict[ProductTemplate, MatLike]
+    product_templates: dict[Product, MatLike]
     templates: dict[CommonTemplate, MatLike]
     screenshot: NDArray
     
-    def __init__(self, products_to_purchase: dict[ProductTemplate, ProductToPurchase]):
+    def __init__(self, products_to_purchase: dict[Product, ProductToPurchase]):
         self.products_to_purchase = products_to_purchase
         self.product_templates = dict()
         self.templates = dict()
@@ -69,16 +61,34 @@ class Vision:
             raise UnsupportedScreenResolution
 
     def test(self):
-        result = cv.cvtColor(self.screenshot, cv.COLOR_BGR2GRAY)
         # result = cv.GaussianBlur(result, (5,5), 0)
         # result = cv.Canny(result,100,200)
-        # _, result = cv.threshold(result, 127, 255, cv.THRESH_BINARY)
-    
-        cv.imshow("result", result)
-        cv.waitKey(0)
-        cv.destroyAllWindows()
+        
+        # img[:, :, 0] = 0
+        # img[:, :, 1] = 0
+        
+        # img_0 = cv.imread("m.jpg")
+        
+        # img = img_0.copy()
+        
+        # _, img = cv.threshold(img, 120, 255, cv.THRESH_BINARY)
+        
+        # nonzeros0 = cv.findNonZero(img[:, :, 0])
+        # nonzeros1 = cv.findNonZero(img[:, :, 1])
+        # nonzeros2 = cv.findNonZero(img[:, :, 2])
+             
+        # for x, y in nonzeros:
+        #     img[x, y, 1] = 255
+        
+        # # img[75:425, :] = img_0[75:425, :]
+        
+        # cv.imwrite("mnew.png", img)
+        # cv.imshow("result", img)
+        # cv.waitKey(0)
+        # cv.destroyAllWindows()
+        pass
 
-    def find_template(self, template: Template):
+    def find_template(self, template: CommonTemplate):
         self.templates[template]
         # cv.matchTemplate()
         return ...
