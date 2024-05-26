@@ -16,6 +16,7 @@ PyRect==0.2.0
 PyScreeze==0.1.30
 python-dotenv==1.0.1
 pytweening==1.2.0
-tesserocr @ file:///C:/py_projects/roblox_ttd_bot/tesserocr-2.7.0-cp311-cp311-win_amd64.whl
 typing_extensions==4.11.0
 win32-setctime==1.1.0
+
+./tesserocr-2.7.0-cp311-cp311-win_amd64.whl
