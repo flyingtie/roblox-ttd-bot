@@ -2,6 +2,7 @@ import cv2 as cv
 import numpy as np
 import re
 
+from loguru import logger
 from enum import Enum, auto
 from cv2.typing import MatLike
 from PIL import ImageGrab
@@ -12,15 +13,17 @@ from src.products_to_purchase import ProductToPurchase
 from src.templates import ProductTemplate, CommonTemplate, Template
 from src.config import config
 
-# TODO:
-# Создать датаклассы или енумы под кнопки и окошки
-class Button(Enum):
+
+class InterfaceElement(Enum):
+    pass
+
+class Button(InterfaceElement):
     CANCEL = auto()
     CONFIRM = auto()
     BUY = auto()
     OKAY = auto()
 
-class Window(Enum):
+class Window(InterfaceElement):
     MARKETPLACE = auto()
     NOT_ENOUGH_MONEY = auto()
     SELLER_IN_TRADE = auto()
@@ -36,6 +39,15 @@ class Vision:
         self.product_templates = dict()
         self.templates = dict()
         self.screenshot = None
+        self._interface_elements_methods = {
+            Button.CONFIRM: self._find_confirm_button,
+            Button.CANCEL: self._find_cancel_button,
+            Button.OKAY: self._find_okay_button,
+            Button.BUY: self._find_buy_button,
+            Window.NOT_ENOUGH_MONEY: self._find_not_enough_money_window,
+            Window.SELLER_IN_TRADE: self._find_seller_in_trade_window,
+            Window.MARKETPLACE: self._find_marketplace_window
+        }
     
     def load_product_templates(self):
         for product_name in self.products_to_purchase:
@@ -54,7 +66,7 @@ class Vision:
         self.screenshot = np.array(img, dtype=np.uint8)
         
         if self.screenshot.size != (1920, 1080):
-            raise UnsupportedScreenResolution("Неподдерживаемое разрешение экрана")
+            raise UnsupportedScreenResolution
 
     def test(self):
         result = cv.cvtColor(self.screenshot, cv.COLOR_BGR2GRAY)
@@ -74,14 +86,18 @@ class Vision:
     def find_product(self):
         pass
     
-    def find_button(self):
-        pass
+    def find_interface_element(self, element: InterfaceElement, region):
+        if not isinstance(element, InterfaceElement):
+            raise TypeError(f"expected InterfaceElement type, got \"{type(element)}\" instead")
+        
+        try:    
+            return self._interface_elements_methods[element]()
+        except KeyError:
+            raise ValueError("unknown interface element")
     
-    def find_window(self):
-        pass
-    
-    def _find_clean_marketplace_window(self):
-        pass
+    def _find_marketplace_window(self):
+        logger.info("Нашёл!")
+        return "lol"
     
     def _find_seller_in_trade_window(self):
         pass
@@ -133,8 +149,6 @@ class Vision:
                 price *= 1_000_000_000
         
         return int(price)
-
-                
 
 # image_1 = cv.imread('templates/no_money 1366 768.png')
 # img_2 = cv.imread('templates/marketplace 1366 768.png', cv.IMREAD_GRAYSCALE)

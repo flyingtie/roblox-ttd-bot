@@ -8,7 +8,7 @@ from src.templates import CommonTemplate
 from src.products_to_purchase import ProductToPurchase
 from src.interaction import Device
 from src.purchasing import PurchaseManager
-from src.vision import Vision
+from src.vision import Vision, Button, Window
 
 
 class Bot:
@@ -31,10 +31,11 @@ class Bot:
     
     def run(self):
         self.on_startup()
-        # self.vision.test()
+        self.vision.find_interface_element(Window.MARKETPLACE, "")
+        
         while True:
-            self.vision.update_screenshot()
-            # logger.info(self.vision.templates)
+            # self.vision.update_screenshot()
+
             #TODO:
             # НАЧАЛО
             # Уводит курсор
@@ -56,6 +57,7 @@ class Bot:
             #                   Если нашёл, нажимает её
             #                       Цикл 3 раза:
             #                           Ждёт
+            #                           Отводит курсор
             #                           Моргает
             #                           Ищет окно подтверждения
             #                               Если не находит 3 раза, уходит в начало цикла

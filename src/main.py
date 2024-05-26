@@ -38,6 +38,7 @@ def main():
     )
     
     try:
+        # TODO: Сделать остановку по горячей кнопке
         bot.run()
     except KeyboardInterrupt:
         logger.error("Бот был остановлен вручную")
@@ -45,8 +46,8 @@ def main():
         logger.error("Сработал failsafe pyautogui")
     except NotEnoughMoney:
         logger.error("Недостаточно средств для покупки")
-    except UnsupportedScreenResolution as e:
-        logger.error(e)
+    except UnsupportedScreenResolution:
+        logger.error("Неподдерживаемое разрешение экрана")
 
 if __name__ == "__main__":
     main()
