@@ -9,9 +9,9 @@ class Settings(BaseSettings):
     pyautogui_failsafe: bool = True
     
     path_to_templates: Path = "templates"
-    path_to_products_templates: Path = "templates/products"
+    path_to_product_templates: Path = "templates/products"
     
-    @field_validator("path_to_templates", "path_to_products_templates", mode="before")
+    @field_validator("path_to_templates", "path_to_product_templates", mode="before")
     @classmethod
     def convert_path_type(cls, v: str, info: ValidationInfo) -> Path:
         if not isinstance(v, str):
