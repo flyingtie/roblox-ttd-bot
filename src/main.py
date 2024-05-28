@@ -1,7 +1,9 @@
 import sys
+import time
+import os
 import pyautogui
 
-sys.path.append(".")
+sys.path.append(os.getcwd())
     
 from pyautogui import FailSafeException
 from loguru import logger    
@@ -31,6 +33,7 @@ def main():
     
     try:
         # TODO: Сделать остановку по горячей кнопке
+        time.sleep(4)
         bot.run()
     except KeyboardInterrupt:
         logger.error("Бот был остановлен вручную")

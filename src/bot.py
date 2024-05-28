@@ -4,7 +4,7 @@ import pyautogui as pg
 from loguru import logger
 from typing import Iterable
 
-from src.enums import CommonTemplate
+from src.enums import CommonTemplate, Product
 from src.products_to_purchase import ProductToPurchase
 from src.interaction import Device
 from src.purchasing import PurchaseManager
@@ -31,9 +31,6 @@ class Bot:
     
     def run(self):
         self.on_startup()
-        # self.vision.test()
-        # self.vision.find_interface_element(Window.MARKETPLACE, "")
-        
         while True:
             # self.vision.update_screenshot()
 

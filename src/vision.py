@@ -7,6 +7,8 @@ from enum import Enum, auto
 from cv2.typing import MatLike
 from PIL import ImageGrab
 from numpy.typing import NDArray
+from typing import Union
+from matplotlib import pyplot as plt
 
 from src.exceptions import UnsupportedScreenResolution, PriceValidationError
 from src.products_to_purchase import ProductToPurchase
@@ -15,8 +17,7 @@ from src.enums import (
     Product, 
     CommonTemplate,
     Window,
-    Button,
-    Template
+    Button
 )
 from src.config import config
 
@@ -32,70 +33,51 @@ class Vision:
         self.templates = dict()
         self.screenshot = None
         self._interface_elements_methods = {
-            Button.CONFIRM: self._find_confirm_button,
-            Button.CANCEL: self._find_cancel_button,
-            Button.OKAY: self._find_okay_button,
-            Button.BUY: self._find_buy_button,
-            Window.NOT_ENOUGH_MONEY: self._find_not_enough_money_window,
-            Window.SELLER_IN_TRADE: self._find_seller_in_trade_window,
-            Window.MARKETPLACE: self._find_marketplace_window
+            Button.CONFIRM: self.find_confirm_button,
+            Button.CANCEL: self.find_cancel_button,
+            Button.OKAY: self.find_okay_button,
+            Button.BUY: self.find_buy_button,
+            Window.NOT_ENOUGH_MONEY: self.find_not_enough_money_window,
+            Window.IN_TRADE: self.find_in_trade_window,
+            Window.MARKETPLACE: self.find_marketplace_window,
+            Window.NOT_FOUND: self.find_not_found_window
         }
     
     def load_product_templates(self):
         for product_name in self.products_to_purchase:
-            path = config.path_to_products_templates.joinpath(product_name)
+            path = config.path_to_product_templates.joinpath(product_name)
             template = cv.imread(str(path) + ".png", cv.IMREAD_GRAYSCALE)
             self.product_templates[product_name] = template
     
     def load_templates(self):
         for template_name in CommonTemplate:
             path = config.path_to_templates.joinpath(template_name)
-            template = cv.imread(str(path) + ".png")
+            template = cv.imread(str(path) + ".png", cv.IMREAD_GRAYSCALE)
             self.templates[template_name] = template
     
     def update_screenshot(self):
         img = ImageGrab.grab()
         self.screenshot = np.array(img, dtype=np.uint8)
         
-        if self.screenshot.size != (1920, 1080):
-            raise UnsupportedScreenResolution
+        # if self.screenshot.size != (1920, 1080):
+        #     raise UnsupportedScreenResolution
 
-    def test(self):
-        # result = cv.GaussianBlur(result, (5,5), 0)
-        # result = cv.Canny(result,100,200)
-        
-        # img[:, :, 0] = 0
-        # img[:, :, 1] = 0
-        
-        # img_0 = cv.imread("m.jpg")
-        
-        # img = img_0.copy()
-        
-        # _, img = cv.threshold(img, 120, 255, cv.THRESH_BINARY)
-        
-        # nonzeros0 = cv.findNonZero(img[:, :, 0])
-        # nonzeros1 = cv.findNonZero(img[:, :, 1])
-        # nonzeros2 = cv.findNonZero(img[:, :, 2])
-             
-        # for x, y in nonzeros:
-        #     img[x, y, 1] = 255
-        
-        # # img[75:425, :] = img_0[75:425, :]
-        
-        # cv.imwrite("mnew.png", img)
-        # cv.imshow("result", img)
-        # cv.waitKey(0)
-        # cv.destroyAllWindows()
-        pass
-
-    def find_template(self, template: CommonTemplate):
-        self.templates[template]
-        # cv.matchTemplate()
-        return ...
+    @staticmethod
+    def _find_template(self, img: Union[MatLike, NDArray], template: Union[MatLike, NDArray]):
+        w, h = template.shape[::-1]
+        res = cv.matchTemplate(img, template, cv.TM_CCOEFF)
+        min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
+        bottom_right = (max_loc[0] + w, max_loc[1] + h)
+        # cv.rectangle(screenshot, max_loc, bottom_right, 255, 2)
+        # plt.subplot(121),plt.imshow(res,cmap = 'gray')
+        # plt.title('Matching Result'), plt.xticks([]), plt.yticks([])
+        # plt.subplot(122),plt.imshow(self.screenshot,cmap = 'gray')
+        # plt.title('Detected Point'), plt.xticks([]), plt.yticks([])
+        # plt.show()
     
-    def find_product(self):
+    def find_product(self, product_name: Product):
         pass
-    
+        
     def find_interface_element(self, element: InterfaceElement, region):
         if not isinstance(element, InterfaceElement):
             raise TypeError(f"expected InterfaceElement type, got \"{type(element)}\" instead")
@@ -105,32 +87,34 @@ class Vision:
         except KeyError:
             raise ValueError("unknown interface element")
     
-    def _find_marketplace_window(self):
-        logger.info("Нашёл!")
-        return "lol"
-    
-    def _find_seller_in_trade_window(self):
+    def find_marketplace_window(self):
         pass
     
-    def _find_not_enough_money_window(self):
+    def find_not_found_window(self):
         pass
     
-    def _find_confirm_button(self):
+    def find_in_trade_window(self):
         pass
     
-    def _find_cancel_button(self):
+    def find_not_enough_money_window(self):
         pass
     
-    def _find_okay_button(self):
+    def find_confirm_button(self):
         pass
     
-    def _find_buy_button(self):
+    def find_cancel_button(self):
         pass
     
-    def _find_product_name_in_confirm_window(self):
+    def find_okay_button(self):
         pass
     
-    def _find_price_in_confirm_window(self):
+    def find_buy_button(self):
+        pass
+    
+    def find_product_name_in_confirm_window(self):
+        pass
+    
+    def find_price_in_confirm_window(self):
         pass
     
     def find_price(self):
