@@ -63,8 +63,8 @@ class Vision:
         img = ImageGrab.grab()
         self.screenshot = np.array(img, dtype=np.uint8)
         
-        # if self.screenshot.size != (1920, 1080):
-        #     raise UnsupportedScreenResolution
+        if self.screenshot.size != (1920, 1080):
+            raise UnsupportedScreenResolution
 
     @staticmethod
     def _find_template(self, img: Union[MatLike, NDArray], template: Union[MatLike, NDArray]):

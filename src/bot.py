@@ -6,7 +6,7 @@ from typing import Iterable
 
 from src.enums import CommonTemplate, Product
 from src.products_to_purchase import ProductToPurchase
-from src.interaction import Device
+from src.interactions import Device
 from src.purchasing import PurchaseManager
 from src.vision import Vision, Button, Window
 
@@ -36,7 +36,7 @@ class Bot:
 
 
             logger.info("lol bot xd")
-            time.sleep(1)
+            time.sleep(2)
 
 
 #TODO:

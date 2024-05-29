@@ -10,7 +10,8 @@ class ProductToPurchase(BaseModel):
 
 prod_to_purch = (
     (Product.HYPER_UPGRADED_TITAN_SPEAKERMAN, 20_000),
-    (Product.DJ_TV_MAN, 1)
+    (Product.DJ_TV_MAN, 100),
+    (Product.SPEAKER_REPAIR_DRONE, 100)
 )
 
 products_to_purchase = {

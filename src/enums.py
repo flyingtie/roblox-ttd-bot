@@ -26,7 +26,7 @@ class CommonTemplate(StrEnum):
 class Product(StrEnum):
     HYPER_UPGRADED_TITAN_SPEAKERMAN = auto()
     DJ_TV_MAN = auto()
-    # SPEAKER_REPAIR_DRONE = auto()
+    SPEAKER_REPAIR_DRONE = auto()
     # SPIDER_TV = auto()
 
 
