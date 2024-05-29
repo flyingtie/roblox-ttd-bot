@@ -8,6 +8,7 @@ from cv2.typing import MatLike
 from PIL import ImageGrab
 from numpy.typing import NDArray
 from typing import Union
+from pathlib import Path
 from matplotlib import pyplot as plt
 
 from src.exceptions import UnsupportedScreenResolution, PriceValidationError
@@ -19,7 +20,6 @@ from src.enums import (
     Window,
     Button
 )
-from src.config import config
 
 
 class Vision:
@@ -27,7 +27,15 @@ class Vision:
     templates: dict[CommonTemplate, MatLike]
     screenshot: NDArray
     
-    def __init__(self, products_to_purchase: dict[Product, ProductToPurchase]):
+    def __init__(
+            self, 
+            products_to_purchase: dict[Product, ProductToPurchase],
+            path_to_templates: Path,
+            path_to_product_templates: Path
+        ):
+
+        self.path_to_templates = path_to_templates
+        self.path_to_product_templates = path_to_product_templates    
         self.products_to_purchase = products_to_purchase
         self.product_templates = dict()
         self.templates = dict()
@@ -45,7 +53,7 @@ class Vision:
     
     def load_product_templates(self):
         for product_name in self.products_to_purchase:
-            path = config.path_to_product_templates.joinpath(product_name + ".png")
+            path = self.path_to_product_templates.joinpath(product_name + ".png")
             template = cv.imread(str(path), cv.IMREAD_GRAYSCALE)
             if template is None:
                 raise FileNotFoundError(path)
@@ -53,7 +61,7 @@ class Vision:
     
     def load_templates(self):
         for template_name in CommonTemplate:
-            path = config.path_to_templates.joinpath(template_name + ".png")
+            path = self.path_to_templates.joinpath(template_name + ".png")
             template = cv.imread(str(path), cv.IMREAD_GRAYSCALE)
             if template is None:
                 raise FileNotFoundError(path)
@@ -79,7 +87,7 @@ class Vision:
         # plt.title('Detected Point'), plt.xticks([]), plt.yticks([])
         # plt.show()
     
-    def find_product(self, product_name: Product):
+    def find_products(self):
         pass
         
     def find_interface_element(self, element: InterfaceElement, region):
@@ -147,15 +155,3 @@ class Vision:
                 price *= 1_000_000_000
         
         return int(price)
-
-# image_1 = cv.imread('templates/no_money 1366 768.png')
-# img_2 = cv.imread('templates/marketplace 1366 768.png', cv.IMREAD_GRAYSCALE)
-
-
-# # ret, img = cv.threshold(img, 127, 255, cv.THRESH_BINARY)
-
-# # img = cv.adaptiveThreshold(img, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2)
-
-# cv.imshow("result", img)
-# cv.waitKey(0)
-# cv.destroyAllWindows()
