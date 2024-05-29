@@ -45,14 +45,18 @@ class Vision:
     
     def load_product_templates(self):
         for product_name in self.products_to_purchase:
-            path = config.path_to_product_templates.joinpath(product_name)
-            template = cv.imread(str(path) + ".png", cv.IMREAD_GRAYSCALE)
+            path = config.path_to_product_templates.joinpath(product_name + ".png")
+            template = cv.imread(str(path), cv.IMREAD_GRAYSCALE)
+            if template is None:
+                raise FileNotFoundError(path)
             self.product_templates[product_name] = template
     
     def load_templates(self):
         for template_name in CommonTemplate:
-            path = config.path_to_templates.joinpath(template_name)
-            template = cv.imread(str(path) + ".png", cv.IMREAD_GRAYSCALE)
+            path = config.path_to_templates.joinpath(template_name + ".png")
+            template = cv.imread(str(path), cv.IMREAD_GRAYSCALE)
+            if template is None:
+                raise FileNotFoundError(path)
             self.templates[template_name] = template
     
     def update_screenshot(self):

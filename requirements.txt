@@ -3,6 +3,7 @@ colorama==0.4.6
 contourpy==1.2.1
 cycler==0.12.1
 fonttools==4.52.4
+keyboard==0.13.5
 kiwisolver==1.4.5
 loguru==0.7.2
 matplotlib==3.9.0
@@ -25,7 +26,6 @@ python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 pytweening==1.2.0
 six==1.16.0
+tesserocr-2.7.0-cp311-cp311-win_amd64.whl
 typing_extensions==4.11.0
 win32-setctime==1.1.0
-
-tesserocr-2.7.0-cp311-cp311-win_amd64.whl

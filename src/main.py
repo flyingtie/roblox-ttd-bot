@@ -1,10 +1,12 @@
 import sys
 import time
 import os
+import keyboard
 import pyautogui
 
 sys.path.append(os.getcwd())
     
+from threading import Thread    
 from pyautogui import FailSafeException
 from loguru import logger    
 from pydantic import ValidationError
@@ -16,6 +18,10 @@ from src.interaction import Device
 from src.vision import Vision
 from src.bot import Bot
 from src.config import config
+
+def wait_shutdown_key(key: str):
+    keyboard.wait(key)
+    raise KeyboardInterrupt
 
 def main():
     pyautogui.FAILSAFE = config.pyautogui_failsafe  
@@ -32,9 +38,9 @@ def main():
     )
     
     try:
-        # TODO: Сделать остановку по горячей кнопке
         time.sleep(4)
-        bot.run()
+        Thread(target=bot.run, daemon=True).start()
+        wait_shutdown_key(config.shutdown_key)
     except KeyboardInterrupt:
         logger.error("Бот был остановлен вручную")
     except FailSafeException:
