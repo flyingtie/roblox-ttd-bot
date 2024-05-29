@@ -75,17 +75,20 @@ class Vision:
             raise UnsupportedScreenResolution
 
     @staticmethod
-    def _find_template(self, img: Union[MatLike, NDArray], template: Union[MatLike, NDArray]):
+    def _find_template(img: Union[MatLike, NDArray], template: Union[MatLike, NDArray]):
         w, h = template.shape[::-1]
-        res = cv.matchTemplate(img, template, cv.TM_CCOEFF)
+        res = cv.matchTemplate(img, template, cv.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
         bottom_right = (max_loc[0] + w, max_loc[1] + h)
-        # cv.rectangle(screenshot, max_loc, bottom_right, 255, 2)
-        # plt.subplot(121),plt.imshow(res,cmap = 'gray')
-        # plt.title('Matching Result'), plt.xticks([]), plt.yticks([])
-        # plt.subplot(122),plt.imshow(self.screenshot,cmap = 'gray')
-        # plt.title('Detected Point'), plt.xticks([]), plt.yticks([])
-        # plt.show()
+        print(max_loc, bottom_right, min_loc, max_val, min_val)
+        if 1 != max_val:
+            return
+        cv.rectangle(img, max_loc, bottom_right, (255, 0, 0), 2)
+        plt.subplot(121),plt.imshow(res,cmap = 'gray')
+        plt.title('Matching Result'), plt.xticks([]), plt.yticks([])
+        plt.subplot(122),plt.imshow(img,cmap = 'gray')
+        plt.title('Detected Point'), plt.xticks([]), plt.yticks([])
+        plt.show()
     
     def find_products(self):
         pass

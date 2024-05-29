@@ -32,6 +32,7 @@ class Bot:
     
     def _run(self):
         self.on_startup()
+        self.vision._find_template(self.vision.templates[CommonTemplate.MARKETPLACE], self.vision.product_templates[Product.DJ_TV_MAN])
         while True:
             # self.vision.update_screenshot()
 
