@@ -8,7 +8,7 @@ from pyautogui import FailSafeException
 from src.exceptions import UnsupportedScreenResolution, NotEnoughMoney
 from src.enums import CommonTemplate, Product
 from src.products_to_purchase import ProductToPurchase
-from src.interactions import Device
+from src.interaction_scripts import hide_cursor
 from src.purchasing import PurchaseManager
 from src.vision import Vision, Button, Window
 
@@ -17,28 +17,14 @@ class Bot:
     def __init__(
         self, 
         purchase_manager: PurchaseManager,
-        vision: Vision,
-        device: Device,
-        # products_to_purchase: Iterable[ProductToPurchase]
+        vision: Vision
     ):
         self.purchase_manager = purchase_manager
         self.vision = vision
-        self.device = device
-        # self.products_to_purchase = products_to_purchase
 
     def on_startup(self):
         self.vision.load_templates()
         self.vision.load_product_templates()
-    
-    def _run(self):
-        self.on_startup()
-        self.vision._find_template(self.vision.templates[CommonTemplate.MARKETPLACE], self.vision.product_templates[Product.DJ_TV_MAN])
-        while True:
-            # self.vision.update_screenshot()
-
-
-            logger.info("lol bot xd")
-            time.sleep(2)
 
     def run(self):
         try:
@@ -50,6 +36,17 @@ class Bot:
             logger.error("Недостаточно средств для покупки")
         except UnsupportedScreenResolution:
             logger.error("Неподдерживаемое разрешение экрана")
+    
+    def _run(self):
+        self.on_startup()
+        # self.vision._find_template(self.vision.templates[CommonTemplate.MARKETPLACE], self.vision.product_templates[Product.DJ_TV_MAN])
+        while True:
+            hide_cursor()
+            self.vision.update_screenshot()
+            
+
+            logger.info("lol bot xd")
+            time.sleep(2)
 
 #TODO:
 # НАЧАЛО

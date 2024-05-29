@@ -6,7 +6,6 @@ from pydantic import field_validator, ValidationInfo
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(case_sensitive=False, strict=True)
     
-    pyautogui_failsafe: bool = True
     shutdown_key: str = "q"
 
     path_to_templates: Path = "templates"

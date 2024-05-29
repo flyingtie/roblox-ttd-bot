@@ -11,6 +11,7 @@ class Button(InterfaceElement):
     OKAY = auto()
 
 class Window(InterfaceElement):
+    CONFIRM = auto()
     MARKETPLACE = auto()
     NOT_ENOUGH_MONEY = auto()
     NOT_FOUND = auto()

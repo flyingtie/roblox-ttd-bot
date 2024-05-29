@@ -14,7 +14,6 @@ from matplotlib import pyplot as plt
 from src.exceptions import UnsupportedScreenResolution, PriceValidationError
 from src.products_to_purchase import ProductToPurchase
 from src.enums import (
-    InterfaceElement, 
     Product, 
     CommonTemplate,
     Window,
@@ -39,17 +38,6 @@ class Vision:
         self.products_to_purchase = products_to_purchase
         self.product_templates = dict()
         self.templates = dict()
-        self.screenshot = None
-        self._interface_elements_methods = {
-            Button.CONFIRM: self.find_confirm_button,
-            Button.CANCEL: self.find_cancel_button,
-            Button.OKAY: self.find_okay_button,
-            Button.BUY: self.find_buy_button,
-            Window.NOT_ENOUGH_MONEY: self.find_not_enough_money_window,
-            Window.IN_TRADE: self.find_in_trade_window,
-            Window.MARKETPLACE: self.find_marketplace_window,
-            Window.NOT_FOUND: self.find_not_found_window
-        }
     
     def load_product_templates(self):
         for product_name in self.products_to_purchase:
@@ -75,66 +63,19 @@ class Vision:
             raise UnsupportedScreenResolution
 
     @staticmethod
-    def _find_template(img: Union[MatLike, NDArray], template: Union[MatLike, NDArray]):
+    def _find_template(img: Union[MatLike, NDArray], template: Union[MatLike, NDArray]) -> tuple:
         w, h = template.shape[::-1]
         res = cv.matchTemplate(img, template, cv.TM_CCOEFF_NORMED)
-        min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
-        bottom_right = (max_loc[0] + w, max_loc[1] + h)
-        print(max_loc, bottom_right, min_loc, max_val, min_val)
+        _, max_val, _, top_left = cv.minMaxLoc(res)
+        bottom_right = (top_left[0] + w, top_left[1] + h)
         if 1 != max_val:
-            return
-        cv.rectangle(img, max_loc, bottom_right, (255, 0, 0), 2)
-        plt.subplot(121),plt.imshow(res,cmap = 'gray')
-        plt.title('Matching Result'), plt.xticks([]), plt.yticks([])
-        plt.subplot(122),plt.imshow(img,cmap = 'gray')
-        plt.title('Detected Point'), plt.xticks([]), plt.yticks([])
-        plt.show()
+            return None
+        return (top_left, bottom_right)
     
-    def find_products(self):
+    @staticmethod
+    def get_text_from_image(img) -> str:
         pass
-        
-    def find_interface_element(self, element: InterfaceElement, region):
-        if not isinstance(element, InterfaceElement):
-            raise TypeError(f"expected InterfaceElement type, got \"{type(element)}\" instead")
-        
-        try:    
-            return self._interface_elements_methods[element]()
-        except KeyError:
-            raise ValueError("unknown interface element")
-    
-    def find_marketplace_window(self):
-        pass
-    
-    def find_not_found_window(self):
-        pass
-    
-    def find_in_trade_window(self):
-        pass
-    
-    def find_not_enough_money_window(self):
-        pass
-    
-    def find_confirm_button(self):
-        pass
-    
-    def find_cancel_button(self):
-        pass
-    
-    def find_okay_button(self):
-        pass
-    
-    def find_buy_button(self):
-        pass
-    
-    def find_product_name_in_confirm_window(self):
-        pass
-    
-    def find_price_in_confirm_window(self):
-        pass
-    
-    def find_price(self):
-        pass
-    
+
     @staticmethod
     def validate_price(price: str) -> int:
         price = price.replace(" ", "").lower()
