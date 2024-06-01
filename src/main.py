@@ -7,6 +7,9 @@ sys.path.append(os.getcwd())
 
 from threading import Thread    
 from loguru import logger    
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from src.products_to_purchase import products_to_purchase
 from src.purchasing import PurchaseManager
@@ -21,11 +24,7 @@ def wait_shutdown_key(key: str):
 
 def main():
     purchase_manager = PurchaseManager(products_to_purchase)
-    vision = Vision(
-        products_to_purchase,
-        config.path_to_templates,
-        config.path_to_product_templates
-    )
+    vision = Vision(products_to_purchase)
     
     bot = Bot(
         purchase_manager=purchase_manager, 
@@ -35,6 +34,7 @@ def main():
     try:
         # time.sleep(4)
         Thread(target=bot.run, daemon=True).start()
+        logger.info("Бот запущен")
         wait_shutdown_key(config.shutdown_key)
     except KeyboardInterrupt:
         logger.error("Бот был остановлен вручную")

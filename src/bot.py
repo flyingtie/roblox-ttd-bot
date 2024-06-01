@@ -3,7 +3,6 @@ import pyautogui as pg
 
 from loguru import logger
 from typing import Iterable
-from pyautogui import FailSafeException
 
 from src.exceptions import UnsupportedScreenResolution, NotEnoughMoney
 from src.enums import CommonTemplate, Product
@@ -28,18 +27,19 @@ class Bot:
 
     def run(self):
         try:
-            logger.info("Бот запущен")
-            self._run()
-        except FailSafeException:
-            logger.error("Сработал failsafe pyautogui")
+            self.on_startup()
+            temp = self.vision.templates[CommonTemplate.MARKETPLACE]
+            print(self.vision.get_price_from_region(temp, (1011, 508), (1084, 535)))
+            # self.vision.test()
+            # self._run()
         except NotEnoughMoney:
             logger.error("Недостаточно средств для покупки")
         except UnsupportedScreenResolution:
             logger.error("Неподдерживаемое разрешение экрана")
     
     def _run(self):
-        self.on_startup()
-        # self.vision._find_template(self.vision.templates[CommonTemplate.MARKETPLACE], self.vision.product_templates[Product.DJ_TV_MAN])
+        
+
         while True:
             hide_cursor()
             self.vision.update_screenshot()
