@@ -4,15 +4,12 @@ import re
 
 from tesserocr import PyTessBaseAPI
 from loguru import logger
-from enum import Enum, auto
 from cv2.typing import MatLike
 from PIL import ImageGrab
-from typing import Union
-from pathlib import Path
-from matplotlib import pyplot as plt
+from typing import Union, Generator
 
 from src.exceptions import UnsupportedScreenResolution, PriceValidationError
-from src.products_to_purchase import ProductToPurchase
+from src.products_for_purchase import ProductForPurchase
 from src.config import config
 from src.enums import (
     Product, 
@@ -27,13 +24,13 @@ class Vision:
     templates: dict[CommonTemplate, MatLike]
     screenshot: MatLike
     
-    def __init__(self, products_to_purchase: dict[Product, ProductToPurchase]):  
-        self.products_to_purchase = products_to_purchase
+    def __init__(self, products_for_purchase: dict[Product, ProductForPurchase]):  
+        self.products_for_purchase = products_for_purchase
         self.product_templates = dict()
         self.templates = dict()
     
     def load_product_templates(self):
-        for product_name in self.products_to_purchase:
+        for product_name in self.products_for_purchase:
             path = config.path_to_product_templates.joinpath(product_name + ".png")
             template = cv.imread(str(path))
             if template is None:
@@ -49,48 +46,85 @@ class Vision:
             self.templates[template_name] = template
     
     def update_screenshot(self):
-        img = ImageGrab.grab()
+        img = ImageGrab.grab(all_screens=True)
+
+        if img.size != (1920, 1080):
+            raise UnsupportedScreenResolution
+        
         self.screenshot = self._pil_image_to_np(img)
 
-        if img != (1920, 1080):
-            raise UnsupportedScreenResolution
+    def find_marketplace(self) -> bool:
+        screenshot = self.screenshot
+        if self._find_template(
+            screenshot, 
+            self.templates[CommonTemplate.MARKETPLACE][216:254, 770:1218], 
+            val=0.99
+        ) is None:
+            return False
+        return True
 
-    def test(self):
-        # img_temp = self.templates[CommonTemplate.MARKETPLACE]
-        # img = cv.imread("templates/tests/test_chars.png", cv.IMREAD_GRAYSCALE)
-        # img = img_temp[348:668, 451:1469]
-        # img = img_temp[508:535, 1011:1084]
-        # img = cv.resize(img, (int(img.shape[1]/1.7), int(img.shape[0]/1.7)), cv.INTER_AREA)
-        # img = cv.threshold(img, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU)[1]
-        # img = cv.copyMakeBorder(img, 20, 20, 0, 0, cv.BORDER_CONSTANT, value=(255, 255, 255))
-        # cv.imshow("result", img)
-        # cv.waitKey(0)
-        # cv.destroyAllWindows()
-        # img_pil = self._np_to_pil_image(img)
-        # print(self._get_text_from_image(img_pil))
-        pass
+    def search_products(self) -> Generator[tuple[Product, tuple[tuple[int, int], tuple[int, int]]], None, None]:
+        for product in self.products_for_purchase:
+            prod_templ = self.product_templates[product]
+            region = self._find_template(self.screenshot, prod_templ, 0.99)
+            if region is None:
+                continue
+            yield product, region
 
-    def get_price_from_region(
+    def get_product_price(
             self, 
-            img: MatLike,
             top_left: tuple[int, int], 
             bottom_right: tuple[int, int]
     ) -> Union[int, None]:
-        """Returns the price from the specified region
+        """Returns the product price from the product region 
 
         Parameters:
-            top_left: x and y coordinates of the top left corner of the region.
-            bottom_right: x and y coordinates of the bottom right corner of the region.
+            top_left: y and x coordinates of the top left corner of the product region.
+            bottom_right: y and x coordinates of the bottom right corner of the product region.
+        
         """
 
-        img = img[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
+        price_region_image = self.screenshot[
+            bottom_right[0] - 1:bottom_right[0] + 135,
+            top_left[1] - 1:bottom_right[1] 
+        ]
+
+        if config.show_debug_pics:
+            cv.imshow("price region image", price_region_image)
+            cv.waitKey(0)
+
+        template = self.templates[CommonTemplate.GEM]
+        if (gem_region := self._find_template(price_region_image, template, val=0.96)) is None:
+            logger.debug("Gem not found")
+            return None
         
+        top_left_gem, bottom_right_gem = gem_region
+        price_image = price_region_image[
+            top_left_gem[0] - 1:bottom_right_gem[0],
+            :top_left_gem[1]
+        ]
+        
+        if config.show_debug_pics:
+            cv.imshow("price_image", price_image)
+            cv.waitKey(0)
+
+        if (price := self._get_price_from_image(price_image)) is None:
+            logger.debug("OCR returned None")
+            return None      
+        return price
+    
+    def _get_price_from_image(self, img: MatLike) -> Union[int, None]:
+        """Returns the price from the image"""
+
         img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-        img = self.resize_image(img, 1.7)
         img = cv.threshold(img, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU)[1]
-        cv.imshow("result", img)
-        cv.waitKey(0)
-        cv.destroyAllWindows()
+        img = cv.copyMakeBorder(img, 20, 20, 20, 20, cv.BORDER_CONSTANT, value=(255, 255, 255))
+        img = self.resize_image(img, 0.5)
+
+        if config.show_debug_pics:
+            cv.imshow("processed price image", img)
+            cv.waitKey(0)
+        
         img = self._np_to_pil_image(img)
         
         str_price = self._get_text_from_image(
@@ -98,11 +132,13 @@ class Vision:
             psm=7, 
             char_whitelist="1234567890.kmb"
         )
-        
+
+        logger.debug(f"recognized price: '{str_price}'")
+
         try:
             return self._validate_price(str_price)
         except PriceValidationError as e:
-            logger.error(e)
+            logger.debug(e)
             return None
 
     @staticmethod
@@ -126,15 +162,35 @@ class Vision:
     @staticmethod
     def _find_template(
         img: MatLike, 
-        template: MatLike
-    ) -> tuple[int, int]:
-        w, h = template.shape[::-1]
+        template: MatLike,
+        val: float
+    ) -> Union[tuple[tuple[int, int], tuple[int, int]], None]:
+        img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+        template = cv.cvtColor(template, cv.COLOR_BGR2GRAY)
+
+        y_templ, x_templ = template.shape
+        
         res = cv.matchTemplate(img, template, cv.TM_CCOEFF_NORMED)
-        _, max_val, _, top_left = cv.minMaxLoc(res)
-        bottom_right = (top_left[0] + w, top_left[1] + h)
-        if 1 != max_val:
+        _, max_val, _, max_loc = cv.minMaxLoc(res)
+
+        
+        top_left = (max_loc[1], max_loc[0])
+        bottom_right = (top_left[0] + y_templ - 1, top_left[1] + x_templ - 1)
+        
+        if config.show_debug_pics:
+            cv.imshow(
+                "detected template", 
+                img[
+                    top_left[0] - 1:bottom_right[0], 
+                    top_left[1] - 1:bottom_right[1]
+                ]
+            )
+            cv.waitKey(0)
+
+        if max_val < val:
             return None
-        return (top_left, bottom_right)
+        
+        return top_left, bottom_right
     
     @staticmethod
     def _get_text_from_image(
@@ -159,7 +215,7 @@ class Vision:
         match_groups = re.match(r"^(\d+|\d+\.\d+)([kmb])$", price)
         
         if not match_groups:
-            raise PriceValidationError(f"could not convert {price} to an integer")
+            raise PriceValidationError(f"could not convert '{price}' to an integer")
         
         price = float(match_groups.group(1))
     
@@ -171,4 +227,5 @@ class Vision:
             case "b":
                 price *= 1_000_000_000
         
+        logger.debug(f"integer price: {price}")
         return int(price)

@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from src.products_to_purchase import products_to_purchase
+from src.products_for_purchase import products_for_purchase
 from src.purchasing import PurchaseManager
 from src.vision import Vision
 from src.bot import Bot
@@ -23,8 +23,8 @@ def wait_shutdown_key(key: str):
     raise KeyboardInterrupt
 
 def main():
-    purchase_manager = PurchaseManager(products_to_purchase)
-    vision = Vision(products_to_purchase)
+    purchase_manager = PurchaseManager(products_for_purchase)
+    vision = Vision(products_for_purchase)
     
     bot = Bot(
         purchase_manager=purchase_manager, 
@@ -32,9 +32,11 @@ def main():
     )
 
     try:
-        # time.sleep(4)
+        # фора для открытия игры
+        time.sleep(3)
+
         Thread(target=bot.run, daemon=True).start()
-        logger.info("Бот запущен")
+
         wait_shutdown_key(config.shutdown_key)
     except KeyboardInterrupt:
         logger.error("Бот был остановлен вручную")

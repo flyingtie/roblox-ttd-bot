@@ -6,6 +6,7 @@ from pydantic import field_validator, ValidationInfo
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(case_sensitive=False, strict=True)
     
+    show_debug_pics: bool = False
     shutdown_key: str = "q"
 
     path_to_templates: Path = "templates"

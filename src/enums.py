@@ -23,6 +23,7 @@ class CommonTemplate(StrEnum):
     CONFIRM_PURCHASE = auto()
     NOT_ENOUGH_MONEY = auto()
     NOT_FOUND = auto()
+    GEM = auto()
 
 class Product(StrEnum):
     HYPER_UPGRADED_TITAN_SPEAKERMAN = auto()
