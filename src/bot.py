@@ -5,12 +5,18 @@ import cv2 as cv
 from loguru import logger
 from typing import Iterable
 
-from src.exceptions import UnsupportedScreenResolution, NotEnoughMoney
-from src.enums import CommonTemplate, Product
+from src.enums import CommonTemplate, Product, Window
+from src.exceptions import UnsupportedScreenResolution
 from src.products_for_purchase import ProductForPurchase
-from src.interaction_scripts import hide_cursor, press_buy_button
+from src.interaction_scripts import (
+    hide_cursor, 
+    press_buy_button,
+    press_confirm_purchase,
+    press_cancel_purchase,
+    press_okay
+)    
 from src.purchasing import PurchaseManager
-from src.vision import Vision, Button, Window
+from src.vision import Vision
 
 
 class Bot:
@@ -22,6 +28,12 @@ class Bot:
         self.purchase_manager = purchase_manager
         self.vision = vision
 
+    # def test(self):
+    #     img = cv.imread("templates/test/test_market.png", cv.IMREAD_GRAYSCALE)
+    #     tmpl = cv.cvtColor(self.vision.product_templates[Product.HYPER_UPGRADED_TITAN_SPEAKERMAN], cv.COLOR_BGR2GRAY)
+    #     res = cv.matchTemplate(img, tmpl, cv.TM_CCOEFF_NORMED)
+    #     print(cv.minMaxLoc(res))
+
     def on_startup(self):
         self.vision.load_templates()
         self.vision.load_product_templates()
@@ -29,9 +41,10 @@ class Bot:
     def run(self):
         try:
             self.on_startup()
+            
+            # self.test()
+            
             self._run()
-        except NotEnoughMoney:
-            logger.error("Недостаточно средств для покупки")
         except UnsupportedScreenResolution:
             logger.error("Неподдерживаемое разрешение экрана")
     
@@ -41,22 +54,45 @@ class Bot:
         while True:
             hide_cursor()
             self.vision.update_screenshot()
-            if not self.vision.find_marketplace():
-                #TODO: найти уведы
-                logger.warning("Не нашёл маркетплейс")
-                time.sleep(1.5)
-                continue
-            for product, product_region in self.vision.search_products():
-                if (product_price := self.vision.get_product_price(product_region[0], product_region[1])) is None:
-                    logger.warning(f"Не получилось распознать цену товара {product}")
-                    break                    
-                if self.purchase_manager.make_purchase_decision(product, product_price) is False:
-                    continue
-                press_buy_button(product_region[0], product_region[1])
-                time.sleep(3)
-                #TODO
 
-            time.sleep(1)
+            if not self.vision.find_marketplace():
+                found_window = self.vision.search_windows()
+                
+                if found_window is None:
+                    logger.warning("Вне рабочей области")
+                    continue
+                if found_window != Window.CONFIRM_PURCHASE:
+                    press_okay()
+                    continue
+                else:
+                    press_cancel_purchase()
+                    continue
+
+            for product_name, product_region in self.vision.search_products():
+                if (product_price := self.vision.get_product_price(product_region[0], product_region[1])) is None:
+                    logger.warning(f"Не получилось распознать цену товара {product_name}")
+                    break 
+
+                if not self.purchase_manager.make_purchase_decision(product_name, product_price):
+                    continue
+                
+                press_buy_button(product_region[0], product_region[1])
+                time.sleep(0.1)
+                
+                hide_cursor()
+                self.vision.update_screenshot()
+                
+                if not self.vision.find_confirm_window():
+                    break
+
+                confirm, clean_price = self.vision.confirm_purchase(product_name, product_price)
+                if not (confirm and self.purchase_manager.make_purchase_decision(product_name, clean_price)):
+                    press_cancel_purchase()
+                    continue
+                press_confirm_purchase()
+                continue
+
+            time.sleep(2)
 
 #TODO:
 # НАЧАЛО
@@ -80,11 +116,11 @@ class Bot:
 #                           Отводит курсор
 #                           Моргает
 #                           Ищет окно подтверждения
-#                               Если не находит 3 раза, уходит в начало цикла
+#                               Если не находит 2 раза, уходит в начало цикла
 #                               Если не находит, continue
 #                               Если находит, break
 #                       Сверяет данные на окне подтверждения
-#                           Если данные не совпадают, уходит в начало цикла
+#                           Если данные не совпадают, нажимает cancel
 #                           Если совпадают, нажимает confirm
 #                       Ждёт
 #                       Уходит в начало цикла

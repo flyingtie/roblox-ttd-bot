@@ -17,7 +17,7 @@ from src.vision import Vision
 from src.bot import Bot
 from src.config import config
 
-
+# 325 381
 def wait_shutdown_key(key: str):
     keyboard.wait(key)
     raise KeyboardInterrupt
@@ -33,7 +33,7 @@ def main():
 
     try:
         # фора для открытия игры
-        time.sleep(3)
+        time.sleep(5)
 
         Thread(target=bot.run, daemon=True).start()
 

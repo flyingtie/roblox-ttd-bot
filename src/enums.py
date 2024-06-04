@@ -1,18 +1,8 @@
 from enum import Enum, StrEnum, auto
 
 
-class InterfaceElement(Enum):
-    pass
-
-class Button(InterfaceElement):
-    CANCEL = auto()
-    CONFIRM = auto()
-    BUY = auto()
-    OKAY = auto()
-
-class Window(InterfaceElement):
-    CONFIRM = auto()
-    MARKETPLACE = auto()
+class Window(StrEnum):
+    CONFIRM_PURCHASE = auto()
     NOT_ENOUGH_MONEY = auto()
     NOT_FOUND = auto()
     IN_TRADE = auto()
