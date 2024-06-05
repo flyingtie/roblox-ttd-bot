@@ -56,11 +56,12 @@ class Vision:
     def search_windows(self) -> Union[Window, None]:
         for window in Window:
             if window != Window.CONFIRM_PURCHASE:
-                if self._find_template(
+                templ_data = self._find_template(
                     self.screenshot, 
                     self.templates[window][387 - 1:447, 576 - 1:1343], 
-                    0.99
-                ) is None:
+                    cv.TM_CCOEFF_NORMED
+                )
+                if templ_data[2] < 0.98:
                     continue
             else:
                 if not self.find_confirm_window():
@@ -69,31 +70,40 @@ class Vision:
     
     def search_products(self) -> Generator[tuple[Product, tuple[tuple[int, int], tuple[int, int]]], None, None]:
         for product in self.products_for_purchase:
+            
             prod_templ = self.product_templates[product]
-            region = self._find_template(self.screenshot, prod_templ, 0.94)
-            if region is None:
+            top_left, bottom_right, max_val = self._find_template(self.screenshot, prod_templ, cv.TM_SQDIFF_NORMED) 
+
+            if max_val > 0.05: #TODO
                 logger.debug(f"product {product} not found")
                 continue
             logger.debug(f"found product {product}")
-            yield product, region
+            
+            yield product, (top_left, bottom_right)
 
     def find_marketplace(self) -> bool:
         screenshot = self.screenshot
-        if self._find_template(
+        
+        templ_data = self._find_template(
             screenshot, 
             self.templates[CommonTemplate.MARKETPLACE][216 - 1:254, 770 - 1:1218], 
-            val=0.99
-        ) is None:
+            cv.TM_CCOEFF_NORMED
+        )
+
+        if templ_data < 0.98:
             return False
         return True
 
     def find_confirm_window(self) -> bool:
         screenshot = self.screenshot
-        if self._find_template(
+        
+        templ_data = self._find_template(
             screenshot,
             self.templates[CommonTemplate.CONFIRM_PURCHASE][277 - 1:347, 604 - 1:1315],
-            val=0.99
-        ) is None:
+            cv.TM_CCOEFF_NORMED
+        )
+
+        if templ_data[2] < 0.98:
             return False
         return True
         
@@ -154,18 +164,17 @@ class Vision:
         ]
 
         template = self.templates[CommonTemplate.GEM]
-        if (gem_region := self._find_template(price_region_image, template, val=0.95)) is None:
-            logger.debug("Gem not found")
-            return None
+        top_left_gem, bottom_right_gem, max_val = self._find_template(price_region_image, template, cv.TM_CCOEFF_NORMED)
         
-        top_left_gem, bottom_right_gem = gem_region
+        if max_val < 0.95:
+            return None
+    
         price_image = price_region_image[
             top_left_gem[0] - 1:bottom_right_gem[0],
             :top_left_gem[1]
         ]
 
         if (price := self._get_price_from_image(price_image)) is None:
-            logger.debug("OCR returned None")
             return None      
         return price
     
@@ -210,14 +219,14 @@ class Vision:
     def _find_template(
         image: MatLike, 
         template: MatLike,
-        val: float
-    ) -> Union[tuple[tuple[int, int], tuple[int, int]], None]:
+        method: int
+    ) -> tuple[tuple[int, int], tuple[int, int], float]:
         image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
         template = cv.cvtColor(template, cv.COLOR_BGR2GRAY)
 
         y_templ, x_templ = template.shape
         
-        res = cv.matchTemplate(image, template, cv.TM_CCOEFF_NORMED)
+        res = cv.matchTemplate(image, template, method)
         _, max_val, _, max_loc = cv.minMaxLoc(res)
 
         
@@ -225,9 +234,6 @@ class Vision:
         bottom_right = (top_left[0] + y_templ - 1, top_left[1] + x_templ - 1)
 
         logger.debug(f"found template: {max_val=}, {max_loc=}")
-
-        if max_val <= val:
-            return None
         
         if config.show_debug_pics and image.shape == (1080, 1920):
             img = image.copy()
@@ -242,7 +248,7 @@ class Vision:
             )
             cv.waitKey(1)
 
-        return top_left, bottom_right
+        return top_left, bottom_right, max_val
     
     def _get_text_from_image(
         self,
