@@ -41,9 +41,6 @@ class Bot:
     def run(self):
         try:
             self.on_startup()
-            
-            # self.test()
-            
             self._run()
         except UnsupportedScreenResolution:
             logger.error("Неподдерживаемое разрешение экрана")

@@ -9,9 +9,9 @@ class ProductForPurchase(BaseModel):
 
 
 prods_to_purch = (
-    (Product.HYPER_UPGRADED_TITAN_SPEAKERMAN, 9_999_999_999),
-    (Product.DJ_TV_MAN, 999_999_999),
-    (Product.SPEAKER_REPAIR_DRONE, 4000)
+    (Product.HYPER_UPGRADED_TITAN_SPEAKERMAN, 0),
+    (Product.DJ_TV_MAN, 0),
+    (Product.SPEAKER_REPAIR_DRONE, 0)
 )
 
 products_for_purchase = {

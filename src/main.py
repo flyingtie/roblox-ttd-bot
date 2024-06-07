@@ -33,7 +33,7 @@ def main():
 
     try:
         # фора для открытия игры
-        time.sleep(5)
+        # time.sleep(5)
 
         Thread(target=bot.run, daemon=True).start()
 

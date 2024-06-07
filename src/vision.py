@@ -1,6 +1,7 @@
-import cv2 as cv
+import cv2
 import numpy as np
 import random
+import mss
 import re
 
 from tesserocr import PyTessBaseAPI
@@ -32,7 +33,7 @@ class Vision:
     def load_product_templates(self):
         for product_name in self.products_for_purchase:
             path = config.path_to_product_templates.joinpath(product_name + ".png")
-            template = cv.imread(str(path))
+            template = cv2.imread(str(path))
             if template is None:
                 raise FileNotFoundError(path)
             self.product_templates[product_name] = template
@@ -40,28 +41,31 @@ class Vision:
     def load_templates(self):
         for template_name in CommonTemplate:
             path = config.path_to_templates.joinpath(template_name + ".png")
-            template = cv.imread(str(path))
+            template = cv2.imread(str(path))
             if template is None:
                 raise FileNotFoundError(path)
             self.templates[template_name] = template
     
     def update_screenshot(self):
-        img = ImageGrab.grab(all_screens=True)
+        with mss.mss() as sct:
+            monitor = sct.monitors[-1]
+            screenshot = sct.grab(monitor)
 
-        if img.size != (1920, 1080):
+        if screenshot.size != (1920, 1080):
             raise UnsupportedScreenResolution
         
-        self.screenshot = self._pil_image_to_np(img)
+        screenshot = np.asarray(screenshot)
+        self.screenshot = screenshot
 
     def search_windows(self) -> Union[Window, None]:
         for window in Window:
             if window != Window.CONFIRM_PURCHASE:
-                templ_data = self._find_template(
+                top_left, bottom_right, max_val = self._find_template(
                     self.screenshot, 
                     self.templates[window][387 - 1:447, 576 - 1:1343], 
-                    cv.TM_CCOEFF_NORMED
+                    cv2.TM_CCOEFF_NORMED
                 )
-                if templ_data[2] < 0.98:
+                if max_val < 0.9:
                     continue
             else:
                 if not self.find_confirm_window():
@@ -72,9 +76,9 @@ class Vision:
         for product in self.products_for_purchase:
             
             prod_templ = self.product_templates[product]
-            top_left, bottom_right, max_val = self._find_template(self.screenshot, prod_templ, cv.TM_SQDIFF_NORMED) 
+            top_left, bottom_right, max_val = self._find_template(self.screenshot, prod_templ, cv2.TM_CCOEFF_NORMED) 
 
-            if max_val > 0.05: #TODO
+            if max_val < 0.9: 
                 logger.debug(f"product {product} not found")
                 continue
             logger.debug(f"found product {product}")
@@ -84,42 +88,46 @@ class Vision:
     def find_marketplace(self) -> bool:
         screenshot = self.screenshot
         
-        templ_data = self._find_template(
+        top_left, bottom_right, max_val = self._find_template(
             screenshot, 
             self.templates[CommonTemplate.MARKETPLACE][216 - 1:254, 770 - 1:1218], 
-            cv.TM_CCOEFF_NORMED
+            cv2.TM_CCOEFF_NORMED
         )
 
-        if templ_data < 0.98:
+        if max_val < 0.9:
             return False
         return True
 
     def find_confirm_window(self) -> bool:
         screenshot = self.screenshot
         
-        templ_data = self._find_template(
+        top_left, bottom_right, max_val = self._find_template(
             screenshot,
             self.templates[CommonTemplate.CONFIRM_PURCHASE][277 - 1:347, 604 - 1:1315],
-            cv.TM_CCOEFF_NORMED
+            cv2.TM_CCOEFF_NORMED
         )
 
-        if templ_data[2] < 0.98:
+        if max_val < 0.9:
             return False
         return True
         
     def confirm_purchase(self, product: Product, price: int) -> tuple[bool, int]:
         confirm_text_image = self.screenshot[352 - 1:664, 312 - 1:1607]
-        
-        text_img = cv.cvtColor(confirm_text_image, cv.COLOR_BGR2GRAY)
-        text_img = cv.threshold(text_img, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU)[1]
-        text_img = cv.copyMakeBorder(text_img, 20, 20, 0, 0, cv.BORDER_CONSTANT, value=(255, 255, 255))
-        text_img = self.resize_image(text_img, 0.5)
+
+        text_img = cv2.cvtColor(confirm_text_image, cv2.COLOR_BGR2GRAY)
+        text_img = cv2.threshold(text_img, 240, 255, cv2.THRESH_BINARY_INV)[1]
+        text_img = cv2.copyMakeBorder(text_img, 20, 20, 0, 0, cv2.BORDER_CONSTANT, value=(255, 255, 255))
+        text_img = self.resize_image(text_img, 2)
+
+        # if config.show_debug_pics is True:
+        #     cv2.imshow("conf", text_img)
+        #     cv2.waitKey()
 
         if (raw_string := self._get_text_from_image(text_img)) is None:
-            return False
+            return (False, 0)
         
         if (product_data := self._parse_raw_confirm_text(raw_string)) is None:
-            return False
+            return (False, 0)
         
         product_name = product.replace("_", "")
         
@@ -164,9 +172,9 @@ class Vision:
         ]
 
         template = self.templates[CommonTemplate.GEM]
-        top_left_gem, bottom_right_gem, max_val = self._find_template(price_region_image, template, cv.TM_CCOEFF_NORMED)
+        top_left_gem, bottom_right_gem, max_val = self._find_template(price_region_image, template, cv2.TM_CCOEFF_NORMED)
         
-        if max_val < 0.95:
+        if max_val < 0.9:
             return None
     
         price_image = price_region_image[
@@ -181,10 +189,10 @@ class Vision:
     def _get_price_from_image(self, img: MatLike) -> Union[int, None]:
         """Returns the price from the image"""
 
-        img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-        img = cv.threshold(img, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU)[1]
-        img = cv.copyMakeBorder(img, 20, 20, 20, 20, cv.BORDER_CONSTANT, value=(255, 255, 255))
-        img = self.resize_image(img, 0.5)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+        img = cv2.copyMakeBorder(img, 20, 20, 20, 20, cv2.BORDER_CONSTANT, value=(255, 255, 255))
+        img = self.resize_image(img, 2)
         
         raw_string_price = self._get_text_from_image(
             img, 
@@ -199,35 +207,35 @@ class Vision:
 
     @staticmethod
     def _np_to_pil_image(img: MatLike) -> ImageGrab.Image:
-        img_cv = cv.cvtColor(img, cv.COLOR_BGR2RGB)
+        img_cv = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         return ImageGrab.Image.fromarray(img_cv)
     
     @staticmethod
     def _pil_image_to_np(img: ImageGrab.Image) -> MatLike:
         np_img = np.asarray(img)
-        return cv.cvtColor(np_img, cv.COLOR_RGB2BGR)
+        return cv2.cvtColor(np_img, cv2.COLOR_RGB2BGR)
 
     @staticmethod
     def resize_image(img: MatLike, coeff: float) -> MatLike:
-        return cv.resize(
+        return cv2.resize(
             img, 
-            (int(img.shape[1] / coeff), int(img.shape[0] / coeff)),
-            cv.INTER_AREA
+            (int(img.shape[1] * coeff), int(img.shape[0] * coeff)),
+            cv2.INTER_AREA
         )
 
-    @staticmethod
     def _find_template(
+        self,
         image: MatLike, 
         template: MatLike,
         method: int
     ) -> tuple[tuple[int, int], tuple[int, int], float]:
-        image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-        template = cv.cvtColor(template, cv.COLOR_BGR2GRAY)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        template = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
 
         y_templ, x_templ = template.shape
         
-        res = cv.matchTemplate(image, template, method)
-        _, max_val, _, max_loc = cv.minMaxLoc(res)
+        res = cv2.matchTemplate(image, template, method)
+        _, max_val, _, max_loc = cv2.minMaxLoc(res)
 
         
         top_left = (max_loc[1], max_loc[0])
@@ -236,17 +244,12 @@ class Vision:
         logger.debug(f"found template: {max_val=}, {max_loc=}")
         
         if config.show_debug_pics and image.shape == (1080, 1920):
-            img = image.copy()
+            img = self.screenshot.copy()
 
-            cv.rectangle(img, top_left[::-1], bottom_right[::-1], color=(203, 192, 255), lineType=cv.FILLED)
-            cv.imshow(
-                "ttd_bot", 
-                img[
-                    top_left[0] - 1:bottom_right[0], 
-                    top_left[1] - 1:bottom_right[1]
-                ]
-            )
-            cv.waitKey(1)
+            cv2.rectangle(img, top_left[::-1], bottom_right[::-1], color=(255, 255, 255))
+            img = self.resize_image(img, 0.5)
+            cv2.imshow("ttd_bot", img)
+            cv2.waitKey(1)
 
         return top_left, bottom_right, max_val
     
