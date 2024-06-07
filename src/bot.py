@@ -9,7 +9,7 @@ from src.enums import CommonTemplate, Product, Window
 from src.exceptions import UnsupportedScreenResolution
 from src.products_for_purchase import ProductForPurchase
 from src.interaction_scripts import (
-    hide_cursor, 
+    anti_afk, 
     press_buy_button,
     press_confirm_purchase,
     press_cancel_purchase,
@@ -49,7 +49,6 @@ class Bot:
         logger.info("Бот запущен")
         
         while True:
-            hide_cursor()
             self.vision.update_screenshot()
 
             if not self.vision.find_marketplace():
@@ -59,11 +58,13 @@ class Bot:
                     logger.warning("Вне рабочей области")
                     continue
                 if found_window != Window.CONFIRM_PURCHASE:
-                    press_okay()
-                    continue
-                else:
                     press_cancel_purchase()
                     continue
+                else:
+                    press_okay()
+                    continue
+            
+            anti_afk()
 
             for product_name, product_region in self.vision.search_products():
                 if (product_price := self.vision.get_product_price(product_region[0], product_region[1])) is None:
@@ -76,7 +77,6 @@ class Bot:
                 press_buy_button(product_region[0], product_region[1])
                 time.sleep(0.1)
                 
-                hide_cursor()
                 self.vision.update_screenshot()
                 
                 if not self.vision.find_confirm_window():
@@ -91,37 +91,4 @@ class Bot:
 
             time.sleep(2)
 
-#TODO:
-# НАЧАЛО
-# Уводит курсор
-# Моргает
-# Пытается обнаружить маркетплейс
-#   Если не находит, ищет уведомления по шаблонам
-#       Если не находит, уходит в начало цикла
-#       Если находит окно "кто-то в трейде", нажимает ок и уходит в начало цикла
-#       Если находит окно "недостаточно денег", то кидает ошибку
-#       Если находит окно с подтверждением, нажимает cancel и уходит в начало цикла
-#       Если находит окно "Продавец в сделке", нажимает ок и уходит в начало цикла
-#   Если находит маркетплейс, ищет отслеживаемые товары на скрине
-#       Если не найдёт, уходит в начало цикла
-#       Если найдёт товар, пытается найти цену 
-#           Если не найдёт цену, уходит в начало цикла
-#           Если считал цену, принимает решение о покупке
-#               Если решил не покупать, ищет оставшиеся товары (уходит в начало локального цикла)
-#               Если решил купить, нажимает кнопку покупки
-#                           Ждёт 3.5 секунды
-#                           Отводит курсор
-#                           Моргает
-#                           Ищет окно подтверждения
-#                               Если не находит 2 раза, уходит в начало цикла
-#                               Если не находит, continue
-#                               Если находит, break
-#                       Сверяет данные на окне подтверждения
-#                           Если данные не совпадают, нажимает cancel
-#                           Если совпадают, нажимает confirm
-#                       Ждёт
-#                       Уходит в начало цикла
-# 
-# 
-# 
-# КОНЕЦ
+# здесь был ишак

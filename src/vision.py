@@ -16,7 +16,7 @@ from src.config import config
 from src.enums import (
     Product, 
     CommonTemplate,
-    Window,
+    Window
 )
 
 
