@@ -6,7 +6,7 @@ import time
 
 def anti_afk():
     random_y = random.randint(440, 640)
-    pi.moveTo(1900, random_y, duration=0.2)
+    pi.moveTo(200, random_y, duration=0.2)
 
 def press_okay():
     pi.moveTo(960, 690, duration=0.9)
