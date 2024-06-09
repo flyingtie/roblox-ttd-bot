@@ -28,12 +28,6 @@ class Bot:
         self.purchase_manager = purchase_manager
         self.vision = vision
 
-    # def test(self):
-    #     img = cv.imread("templates/test/test_market.png", cv.IMREAD_GRAYSCALE)
-    #     tmpl = cv.cvtColor(self.vision.product_templates[Product.HYPER_UPGRADED_TITAN_SPEAKERMAN], cv.COLOR_BGR2GRAY)
-    #     res = cv.matchTemplate(img, tmpl, cv.TM_CCOEFF_NORMED)
-    #     print(cv.minMaxLoc(res))
-
     def on_startup(self):
         self.vision.load_templates()
         self.vision.load_product_templates()
