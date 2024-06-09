@@ -56,6 +56,7 @@ class Bot:
                 
                 if found_window is None:
                     logger.warning("Вне рабочей области")
+                    time.sleep(1)
                     continue
                 if found_window != Window.CONFIRM_PURCHASE:
                     press_cancel_purchase()
