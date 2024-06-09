@@ -53,10 +53,10 @@ class Bot:
                     time.sleep(1)
                     continue
                 if found_window != Window.CONFIRM_PURCHASE:
-                    press_cancel_purchase()
+                    press_okay()
                     continue
                 else:
-                    press_okay()
+                    press_cancel_purchase()
                     continue
             
             anti_afk()
