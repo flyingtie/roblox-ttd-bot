@@ -56,11 +56,24 @@ class Vision:
         
         screenshot = np.asarray(screenshot)
         self.screenshot = screenshot
+    
+    def search_products(self) -> Generator[tuple[Product, tuple[tuple[int, int], tuple[int, int]]], None, None]:
+        for product in self.products_for_purchase:
+            
+            prod_templ = self.product_templates[product]
+            top_left, bottom_right, max_val = self._find_template(self.screenshot, prod_templ, cv2.TM_CCOEFF_NORMED) 
+
+            if max_val < 0.96: 
+                logger.debug(f"product {product} not found")
+                continue
+            logger.debug(f"found product {product}")
+            
+            yield product, (top_left, bottom_right)
 
     def search_windows(self) -> Union[Window, None]:
         for window in Window:
             if window != Window.CONFIRM_PURCHASE:
-                top_left, bottom_right, max_val = self._find_template(
+                _, _, max_val = self._find_template(
                     self.screenshot, 
                     self.templates[window][387 - 1:447, 576 - 1:1343], 
                     cv2.TM_CCOEFF_NORMED
@@ -71,24 +84,11 @@ class Vision:
                 if not self.find_confirm_window():
                     continue
             return window
-    
-    def search_products(self) -> Generator[tuple[Product, tuple[tuple[int, int], tuple[int, int]]], None, None]:
-        for product in self.products_for_purchase:
-            
-            prod_templ = self.product_templates[product]
-            top_left, bottom_right, max_val = self._find_template(self.screenshot, prod_templ, cv2.TM_CCOEFF_NORMED) 
-
-            if max_val < 0.9: 
-                logger.debug(f"product {product} not found")
-                continue
-            logger.debug(f"found product {product}")
-            
-            yield product, (top_left, bottom_right)
 
     def find_marketplace(self) -> bool:
         screenshot = self.screenshot
         
-        top_left, bottom_right, max_val = self._find_template(
+        _, _, max_val = self._find_template(
             screenshot, 
             self.templates[CommonTemplate.MARKETPLACE][216 - 1:254, 770 - 1:1218], 
             cv2.TM_CCOEFF_NORMED
@@ -101,7 +101,7 @@ class Vision:
     def find_confirm_window(self) -> bool:
         screenshot = self.screenshot
         
-        top_left, bottom_right, max_val = self._find_template(
+        _, _, max_val = self._find_template(
             screenshot,
             self.templates[CommonTemplate.CONFIRM_PURCHASE][277 - 1:347, 604 - 1:1315],
             cv2.TM_CCOEFF_NORMED
@@ -167,7 +167,7 @@ class Vision:
         """
 
         price_region_image = self.screenshot[
-            bottom_right[0] - 1:bottom_right[0] + 135,
+            bottom_right[0] - 1:bottom_right[0] + 35,
             top_left[1] - 1:bottom_right[1] 
         ]
 
@@ -227,8 +227,10 @@ class Vision:
         self,
         image: MatLike, 
         template: MatLike,
-        method: int
+        method: int = cv2.TM_CCOEFF_NORMED
     ) -> tuple[tuple[int, int], tuple[int, int], float]:
+        """THIS METHOD ONLY WORKS WITH cv2.TM_CCOEFF_NORMED!!! (At least for now)"""
+        
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         template = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
 

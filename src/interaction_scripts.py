@@ -29,7 +29,7 @@ def press_buy_button(
 ):
     x, y = (
         top_left_product_region[1] + 50, 
-        buttom_right_product_region[0] + 120
+        buttom_right_product_region[0] + 50
     )
 
     pi.moveTo(x, y, duration=0.9)

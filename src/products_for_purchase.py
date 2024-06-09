@@ -11,7 +11,9 @@ class ProductForPurchase(BaseModel):
 prods_to_purch = (
     (Product.HYPER_UPGRADED_TITAN_SPEAKERMAN, 0),
     (Product.DJ_TV_MAN, 0),
-    (Product.SPEAKER_REPAIR_DRONE, 0)
+    (Product.SPEAKER_REPAIR_DRONE, 0),
+    (Product.ENGINEER_CAMERAMAN, 0),
+    (Product.SPIDER_TV, 0)
 )
 
 products_for_purchase = {

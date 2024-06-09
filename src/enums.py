@@ -1,6 +1,10 @@
 from enum import Enum, StrEnum, auto
 
 
+class Coords(Enum):
+    #TODO
+    pass
+
 class Window(StrEnum):
     CONFIRM_PURCHASE = auto()
     NOT_ENOUGH_MONEY = auto()
@@ -19,6 +23,5 @@ class Product(StrEnum):
     HYPER_UPGRADED_TITAN_SPEAKERMAN = auto()
     DJ_TV_MAN = auto()
     SPEAKER_REPAIR_DRONE = auto()
-    # SPIDER_TV = auto()
-
-
+    ENGINEER_CAMERAMAN = auto()
+    SPIDER_TV = auto()
